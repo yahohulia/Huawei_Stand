@@ -1,0 +1,308 @@
+[
+  {
+    "tc": "TC-04",
+    "title": "Captive Portal: доступ до та після входу (R-04)",
+    "status": "PASS",
+    "checks": [
+      {
+        "check": "dev-student: до входу HTTP перенаправлено на портал",
+        "ok": true,
+        "expected": "302 -> 10.67.10.1:8000"
+      },
+      {
+        "check": "dev-student: до входу ping в інтернет закритий",
+        "ok": true,
+        "expected": "немає відповіді"
+      },
+      {
+        "check": "dev-student: до входу HTTPS в інтернет закритий",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "dev-teacher: до входу HTTP перенаправлено на портал",
+        "ok": true,
+        "expected": "302 -> 10.67.20.1:8001"
+      },
+      {
+        "check": "dev-teacher: до входу ping в інтернет закритий",
+        "ok": true,
+        "expected": "немає відповіді"
+      },
+      {
+        "check": "dev-teacher: до входу HTTPS в інтернет закритий",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "dev-guest: до входу HTTP перенаправлено на портал",
+        "ok": true,
+        "expected": "302 -> 10.67.30.1:8002"
+      },
+      {
+        "check": "dev-guest: до входу ping в інтернет закритий",
+        "ok": true,
+        "expected": "немає відповіді"
+      },
+      {
+        "check": "dev-guest: до входу HTTPS в інтернет закритий",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "Хибний пароль не пускає",
+        "ok": true,
+        "expected": "NOT_AUTHORIZED"
+      },
+      {
+        "check": "Акаунт студента не входить у гостьову зону",
+        "ok": true,
+        "expected": "NOT_AUTHORIZED"
+      },
+      {
+        "check": "Акаунт викладача не входить у зону студентів",
+        "ok": true,
+        "expected": "NOT_AUTHORIZED"
+      },
+      {
+        "check": "Гостьовий ваучер не входить у зону студентів",
+        "ok": true,
+        "expected": "NOT_AUTHORIZED"
+      },
+      {
+        "check": "Неіснуючий ваучер не пускає",
+        "ok": true,
+        "expected": "NOT_AUTHORIZED"
+      },
+      {
+        "check": "Після невдалих входів інтернет усе ще закритий (редирект, не вміст)",
+        "ok": true,
+        "expected": "302"
+      },
+      {
+        "check": "dev-student: вхід успішний (STUDENTS)",
+        "ok": true,
+        "expected": "AUTHORIZED"
+      },
+      {
+        "check": "dev-student: після входу є доступ в інтернет",
+        "ok": true,
+        "expected": "відповідь сайту"
+      },
+      {
+        "check": "dev-student: після входу ping в інтернет працює",
+        "ok": true,
+        "expected": "є відповідь"
+      },
+      {
+        "check": "dev-teacher: вхід успішний (TEACHERS)",
+        "ok": true,
+        "expected": "AUTHORIZED"
+      },
+      {
+        "check": "dev-teacher: після входу є доступ в інтернет",
+        "ok": true,
+        "expected": "відповідь сайту"
+      },
+      {
+        "check": "dev-teacher: після входу ping в інтернет працює",
+        "ok": true,
+        "expected": "є відповідь"
+      },
+      {
+        "check": "dev-guest: вхід успішний (GUESTS)",
+        "ok": true,
+        "expected": "AUTHORIZED"
+      },
+      {
+        "check": "dev-guest: після входу є доступ в інтернет",
+        "ok": true,
+        "expected": "відповідь сайту"
+      },
+      {
+        "check": "dev-guest: після входу ping в інтернет працює",
+        "ok": true,
+        "expected": "є відповідь"
+      },
+      {
+        "check": "Портал веде 3 активні сесії (по одній на сегмент)",
+        "ok": true,
+        "expected": ">= 3"
+      }
+    ]
+  },
+  {
+    "tc": "TC-03",
+    "title": "Рольова сегментація: Студенти / Викладачі / Гості (R-03)",
+    "status": "PASS",
+    "checks": [
+      {
+        "check": "dev-student: адреса з підмережі 10.67.10.0/24",
+        "ok": true,
+        "expected": "10.67.10.x"
+      },
+      {
+        "check": "dev-teacher: адреса з підмережі 10.67.20.0/24",
+        "ok": true,
+        "expected": "10.67.20.x"
+      },
+      {
+        "check": "dev-guest: адреса з підмережі 10.67.30.0/24",
+        "ok": true,
+        "expected": "10.67.30.x"
+      },
+      {
+        "check": "dev-student -> dev-teacher (10.67.20.157): ping заблоковано",
+        "ok": true,
+        "expected": "100% втрат"
+      },
+      {
+        "check": "dev-student -> dev-teacher: TCP :8000 недоступний",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "dev-student -> dev-guest (10.67.30.157): ping заблоковано",
+        "ok": true,
+        "expected": "100% втрат"
+      },
+      {
+        "check": "dev-student -> dev-guest: TCP :8000 недоступний",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "dev-teacher -> dev-student (10.67.10.157): ping заблоковано",
+        "ok": true,
+        "expected": "100% втрат"
+      },
+      {
+        "check": "dev-teacher -> dev-student: TCP :8000 недоступний",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "dev-teacher -> dev-guest (10.67.30.157): ping заблоковано",
+        "ok": true,
+        "expected": "100% втрат"
+      },
+      {
+        "check": "dev-teacher -> dev-guest: TCP :8000 недоступний",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "dev-guest -> dev-student (10.67.10.157): ping заблоковано",
+        "ok": true,
+        "expected": "100% втрат"
+      },
+      {
+        "check": "dev-guest -> dev-student: TCP :8000 недоступний",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "dev-guest -> dev-teacher (10.67.20.157): ping заблоковано",
+        "ok": true,
+        "expected": "100% втрат"
+      },
+      {
+        "check": "dev-guest -> dev-teacher: TCP :8000 недоступний",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "dev-student: інтернет доступний",
+        "ok": true,
+        "expected": "відповідь сайту"
+      },
+      {
+        "check": "dev-teacher: інтернет доступний",
+        "ok": true,
+        "expected": "відповідь сайту"
+      },
+      {
+        "check": "dev-guest: інтернет доступний",
+        "ok": true,
+        "expected": "відповідь сайту"
+      },
+      {
+        "check": "dev-student: внутрішні ресурси доступні",
+        "ok": true,
+        "expected": "INTRANET-OK"
+      },
+      {
+        "check": "dev-teacher: внутрішні ресурси доступні",
+        "ok": true,
+        "expected": "INTRANET-OK"
+      },
+      {
+        "check": "Firewall зафіксував блокування від STUDENTS",
+        "ok": true,
+        "expected": "є записи block"
+      },
+      {
+        "check": "Firewall зафіксував блокування від TEACHERS",
+        "ok": true,
+        "expected": "є записи block"
+      },
+      {
+        "check": "Firewall зафіксував блокування від GUESTS",
+        "ok": true,
+        "expected": "є записи block"
+      }
+    ]
+  },
+  {
+    "tc": "TC-08",
+    "title": "Ізоляція гостьового сегмента від внутрішніх ресурсів (R-08)",
+    "status": "PASS",
+    "checks": [
+      {
+        "check": "Студент бачить внутрішній сервер (сервер живий)",
+        "ok": true,
+        "expected": "INTRANET-OK"
+      },
+      {
+        "check": "HTTP до внутрішнього сервера заблоковано",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "ping внутрішнього сервера заблоковано",
+        "ok": true,
+        "expected": "100% втрат"
+      },
+      {
+        "check": "Сканування портів: жоден порт не open",
+        "ok": true,
+        "expected": "усі filtered"
+      },
+      {
+        "check": "Гість не відкриває керування OPNsense (LAN) (192.168.56.10)",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "Гість не відкриває шлюз студентського VLAN (10.67.10.1)",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "Гість не відкриває шлюз VLAN викладачів (10.67.20.1)",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "Гість: інтернет працює",
+        "ok": true,
+        "expected": "відповідь сайту"
+      },
+      {
+        "check": "Firewall зафіксував блокування гостьового трафіку до внутрішніх адрес",
+        "ok": true,
+        "expected": "є записи block"
+      }
+    ]
+  }
+]

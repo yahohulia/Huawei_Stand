@@ -1,0 +1,63 @@
+=== TC-08 (OPNsense): Ізоляція гостьового сегмента від внутрішніх ресурсів (R-08) ===
+Час запуску: 2026-10-22 10:48:59  |  Середовище: OPNsense 26.7 у VirtualBox + VM alpine-client (VLAN 10/20/30)
+[dev-guest] вхід у зону 2 як 7S5jRq -> clientState=AUTHORIZED
+[dev-student] вхід у зону 0 як student01 -> clientState=AUTHORIZED
+
+Передумова: гість авторизований у GUESTS, внутрішній сервер університету — 192.168.56.20
+
+-- Крок 1. Контроль: сервер взагалі працює (з боку студента)
+[dev-student] $ curl -s -m 5 http://192.168.56.20/
+    INTRANET-OK   [rc=0]
+  -> PASS: Студент бачить внутрішній сервер (сервер живий)  (очікується: INTRANET-OK)
+
+-- Крок 2. Спроби гостя дістатися внутрішніх ресурсів
+[dev-guest] $ curl -s -m 5 -o /dev/null -w "%{http_code}" http://192.168.56.20/
+    000   [rc=28]
+  -> PASS: HTTP до внутрішнього сервера заблоковано  (очікується: немає з'єднання)
+[dev-guest] $ ping -c2 -W1 192.168.56.20
+    PING 192.168.56.20 (192.168.56.20) 56(84) bytes of data.
+    
+    --- 192.168.56.20 ping statistics ---
+    2 packets transmitted, 0 received, 100% packet loss, time 1052ms   [rc=1]
+  -> PASS: ping внутрішнього сервера заблоковано  (очікується: 100% втрат)
+[dev-guest] $ nmap -Pn -n -p 22,80,443,8080 --max-retries 1 --host-timeout 15s 192.168.56.20
+    Starting Nmap 7.99 ( https://nmap.org ) at 2026-10-22 10:49 +0300
+    Nmap scan report for 192.168.56.20
+    Host is up.
+    
+    PORT     STATE    SERVICE
+    22/tcp   filtered ssh
+    80/tcp   filtered http
+    443/tcp  filtered https
+    8080/tcp filtered http-proxy
+    
+    Nmap done: 1 IP address (1 host up) scanned in 3.17 seconds   [rc=0]
+  -> PASS: Сканування портів: жоден порт не open  (очікується: усі filtered)
+[dev-guest] $ curl -sk -m 4 -o /dev/null -w "%{http_code}" https://192.168.56.10/
+    000   [rc=28]
+  -> PASS: Гість не відкриває керування OPNsense (LAN) (192.168.56.10)  (очікується: немає з'єднання)
+[dev-guest] $ curl -sk -m 4 -o /dev/null -w "%{http_code}" https://10.67.10.1/
+    000   [rc=28]
+  -> PASS: Гість не відкриває шлюз студентського VLAN (10.67.10.1)  (очікується: немає з'єднання)
+[dev-guest] $ curl -sk -m 4 -o /dev/null -w "%{http_code}" https://10.67.20.1/
+    000   [rc=28]
+  -> PASS: Гість не відкриває шлюз VLAN викладачів (10.67.20.1)  (очікується: немає з'єднання)
+
+-- Крок 3. Контроль: гість має інтернет
+[dev-guest] $ curl -s -m 8 -o /dev/null -w "%{http_code}" http://1.1.1.1/
+    301   [rc=0]
+  -> PASS: Гість: інтернет працює  (очікується: відповідь сайту)
+
+-- Evidence: журнал firewall
+[firewall log] block від гостя до внутрішніх адрес: 27 записів
+    2026-10-22T07:49:23  vlan0.30  10.67.30.157 -> 10.67.20.1  proto=tcp dport=443
+    2026-10-22T07:49:22  vlan0.30  10.67.30.157 -> 10.67.20.1  proto=tcp dport=443
+    2026-10-22T07:49:21  vlan0.30  10.67.30.157 -> 10.67.20.1  proto=tcp dport=443
+    2026-10-22T07:49:20  vlan0.30  10.67.30.157 -> 10.67.20.1  proto=tcp dport=443
+    2026-10-22T07:49:19  vlan0.30  10.67.30.157 -> 10.67.10.1  proto=tcp dport=443
+    2026-10-22T07:49:18  vlan0.30  10.67.30.157 -> 10.67.10.1  proto=tcp dport=443
+    2026-10-22T07:49:17  vlan0.30  10.67.30.157 -> 10.67.10.1  proto=tcp dport=443
+    2026-10-22T07:49:16  vlan0.30  10.67.30.157 -> 10.67.10.1  proto=tcp dport=443
+  -> PASS: Firewall зафіксував блокування гостьового трафіку до внутрішніх адрес  (очікується: є записи block)
+
+ПІДСУМОК TC-08: PASS (9/9 перевірок)

@@ -1,0 +1,110 @@
+=== TC-04 (OPNsense): Captive Portal: доступ до та після входу (R-04) ===
+Час запуску: 2026-10-22 10:47:02  |  Середовище: OPNsense 26.7 у VirtualBox + VM alpine-client (VLAN 10/20/30)
+
+Передумова: пристрої в VLAN своїх сегментів, вхід не виконано.
+
+-- dev-student (STUDENTS)
+[dev-student] $ curl -s -m 6 -o /dev/null -w "%{http_code} %{redirect_url}" http://93.184.216.34/
+    302 http://10.67.10.1:8000/index.html?redirurl=93.184.216.34/   [rc=0]
+  -> PASS: dev-student: до входу HTTP перенаправлено на портал  (очікується: 302 -> 10.67.10.1:8000)
+[dev-student] $ ping -c1 -W2 1.1.1.1
+    PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
+    
+    --- 1.1.1.1 ping statistics ---
+    1 packets transmitted, 0 received, 100% packet loss, time 0ms   [rc=1]
+  -> PASS: dev-student: до входу ping в інтернет закритий  (очікується: немає відповіді)
+[dev-student] $ curl -sk -m 5 -o /dev/null -w "%{http_code}" https://1.1.1.1/
+    000   [rc=28]
+  -> PASS: dev-student: до входу HTTPS в інтернет закритий  (очікується: немає з'єднання)
+
+-- dev-teacher (TEACHERS)
+[dev-teacher] $ curl -s -m 6 -o /dev/null -w "%{http_code} %{redirect_url}" http://93.184.216.34/
+    302 http://10.67.20.1:8001/index.html?redirurl=93.184.216.34/   [rc=0]
+  -> PASS: dev-teacher: до входу HTTP перенаправлено на портал  (очікується: 302 -> 10.67.20.1:8001)
+[dev-teacher] $ ping -c1 -W2 1.1.1.1
+    PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
+    
+    --- 1.1.1.1 ping statistics ---
+    1 packets transmitted, 0 received, 100% packet loss, time 0ms   [rc=1]
+  -> PASS: dev-teacher: до входу ping в інтернет закритий  (очікується: немає відповіді)
+[dev-teacher] $ curl -sk -m 5 -o /dev/null -w "%{http_code}" https://1.1.1.1/
+    000   [rc=28]
+  -> PASS: dev-teacher: до входу HTTPS в інтернет закритий  (очікується: немає з'єднання)
+
+-- dev-guest (GUESTS)
+[dev-guest] $ curl -s -m 6 -o /dev/null -w "%{http_code} %{redirect_url}" http://93.184.216.34/
+    302 http://10.67.30.1:8002/index.html?redirurl=93.184.216.34/   [rc=0]
+  -> PASS: dev-guest: до входу HTTP перенаправлено на портал  (очікується: 302 -> 10.67.30.1:8002)
+[dev-guest] $ ping -c1 -W2 1.1.1.1
+    PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
+    
+    --- 1.1.1.1 ping statistics ---
+    1 packets transmitted, 0 received, 100% packet loss, time 0ms   [rc=1]
+  -> PASS: dev-guest: до входу ping в інтернет закритий  (очікується: немає відповіді)
+[dev-guest] $ curl -sk -m 5 -o /dev/null -w "%{http_code}" https://1.1.1.1/
+    000   [rc=28]
+  -> PASS: dev-guest: до входу HTTPS в інтернет закритий  (очікується: немає з'єднання)
+
+-- Негативні входи
+[dev-student] вхід у зону 0 як student01 -> clientState=NOT_AUTHORIZED
+  -> PASS: Хибний пароль не пускає  (очікується: NOT_AUTHORIZED)
+[dev-guest] вхід у зону 2 як student01 -> clientState=NOT_AUTHORIZED
+  -> PASS: Акаунт студента не входить у гостьову зону  (очікується: NOT_AUTHORIZED)
+[dev-student] вхід у зону 0 як teacher01 -> clientState=NOT_AUTHORIZED
+  -> PASS: Акаунт викладача не входить у зону студентів  (очікується: NOT_AUTHORIZED)
+[dev-student] вхід у зону 0 як 7S5jRq -> clientState=NOT_AUTHORIZED
+  -> PASS: Гостьовий ваучер не входить у зону студентів  (очікується: NOT_AUTHORIZED)
+[dev-guest] вхід у зону 2 як nonexistent -> clientState=NOT_AUTHORIZED
+  -> PASS: Неіснуючий ваучер не пускає  (очікується: NOT_AUTHORIZED)
+[dev-student] $ curl -s -m 5 -o /dev/null -w "%{http_code}" http://1.1.1.1/
+    302   [rc=0]
+  -> PASS: Після невдалих входів інтернет усе ще закритий (редирект, не вміст)  (очікується: 302)
+
+-- Успішні входи
+[dev-student] вхід у зону 0 як student01 -> clientState=AUTHORIZED
+  -> PASS: dev-student: вхід успішний (STUDENTS)  (очікується: AUTHORIZED)
+[dev-student] $ curl -s -m 8 -o /dev/null -w "%{http_code}" http://1.1.1.1/
+    301   [rc=0]
+  -> PASS: dev-student: після входу є доступ в інтернет  (очікується: відповідь сайту)
+[dev-student] $ ping -c1 -W3 1.1.1.1
+    PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
+    64 bytes from 1.1.1.1: icmp_seq=1 ttl=56 time=17.4 ms
+    
+    --- 1.1.1.1 ping statistics ---
+    1 packets transmitted, 1 received, 0% packet loss, time 0ms
+    rtt min/avg/max/mdev = 17.401/17.401/17.401/0.000 ms   [rc=0]
+  -> PASS: dev-student: після входу ping в інтернет працює  (очікується: є відповідь)
+[dev-teacher] вхід у зону 1 як teacher01 -> clientState=AUTHORIZED
+  -> PASS: dev-teacher: вхід успішний (TEACHERS)  (очікується: AUTHORIZED)
+[dev-teacher] $ curl -s -m 8 -o /dev/null -w "%{http_code}" http://1.1.1.1/
+    301   [rc=0]
+  -> PASS: dev-teacher: після входу є доступ в інтернет  (очікується: відповідь сайту)
+[dev-teacher] $ ping -c1 -W3 1.1.1.1
+    PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
+    64 bytes from 1.1.1.1: icmp_seq=1 ttl=56 time=19.6 ms
+    
+    --- 1.1.1.1 ping statistics ---
+    1 packets transmitted, 1 received, 0% packet loss, time 0ms
+    rtt min/avg/max/mdev = 19.586/19.586/19.586/0.000 ms   [rc=0]
+  -> PASS: dev-teacher: після входу ping в інтернет працює  (очікується: є відповідь)
+[dev-guest] вхід у зону 2 як 7S5jRq -> clientState=AUTHORIZED
+  -> PASS: dev-guest: вхід успішний (GUESTS)  (очікується: AUTHORIZED)
+[dev-guest] $ curl -s -m 8 -o /dev/null -w "%{http_code}" http://1.1.1.1/
+    301   [rc=0]
+  -> PASS: dev-guest: після входу є доступ в інтернет  (очікується: відповідь сайту)
+[dev-guest] $ ping -c1 -W3 1.1.1.1
+    PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
+    64 bytes from 1.1.1.1: icmp_seq=1 ttl=56 time=18.5 ms
+    
+    --- 1.1.1.1 ping statistics ---
+    1 packets transmitted, 1 received, 0% packet loss, time 0ms
+    rtt min/avg/max/mdev = 18.511/18.511/18.511/0.000 ms   [rc=0]
+  -> PASS: dev-guest: після входу ping в інтернет працює  (очікується: є відповідь)
+
+[OPNsense] активні сесії порталу:
+    зона 0  student01  10.67.10.157  via Local Database
+    зона 1  teacher01  10.67.20.157  via Local Database
+    зона 2  7S5jRq  10.67.30.157  via Vouchers
+  -> PASS: Портал веде 3 активні сесії (по одній на сегмент)  (очікується: >= 3)
+
+ПІДСУМОК TC-04: PASS (25/25 перевірок)

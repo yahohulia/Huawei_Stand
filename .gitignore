@@ -1,0 +1,12 @@
+# Секрети: ключ API, SSH-ключ, ваучери. НІКОЛИ не додавати в репозиторій.
+secrets/*
+!secrets/README.md
+
+# Скриншоти й образи VM лежать на спільному Google Drive
+evidence/**/screens/
+*.ova
+*.vdi
+*.iso
+
+__pycache__/
+*.pyc

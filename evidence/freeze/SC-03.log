@@ -1,0 +1,23 @@
+=== SC-03 (OPNsense): Матеріали й середовище для Testing готові ===
+Час запуску: 2026-10-26 21:50:05  |  Середовище: OPNsense 26.7 у VirtualBox + VM alpine-client (VLAN 10/20/30)
+[файл] README.md: є
+  -> PASS: Є README.md  (очікується: файл існує)
+[файл] scripts/run_opn_tests.py: є
+  -> PASS: Є scripts/run_opn_tests.py  (очікується: файл існує)
+[файл] scripts/run_sprint2_tests.py: є
+  -> PASS: Є scripts/run_sprint2_tests.py  (очікується: файл існує)
+[файл] scripts/portal_screens.py: є
+  -> PASS: Є scripts/portal_screens.py  (очікується: файл існує)
+[файл] scripts/client_devices.sh: є
+  -> PASS: Є scripts/client_devices.sh  (очікується: файл існує)
+[файл] scripts/load_clients.sh: є
+  -> PASS: Є scripts/load_clients.sh  (очікується: файл існує)
+[файл] scripts/monitor.py: є
+  -> PASS: Є scripts/monitor.py  (очікується: файл існує)
+[файл] ../Drive_package/03_Образи_VM/ІМПОРТ.txt: є
+  -> PASS: Є ../Drive_package/03_Образи_VM/ІМПОРТ.txt  (очікується: файл існує)
+[OPNsense] тестові акаунти: ['guest01', 'student01', 'student02', 'teacher01']
+  -> PASS: Тестові акаунти студентів і викладача на місці  (очікується: є)
+  -> PASS: Генерація гостьових ваучерів працює  (очікується: ваучер створено)
+
+ПІДСУМОК SC-03: PASS (10/10 перевірок)

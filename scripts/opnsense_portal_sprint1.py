@@ -13,10 +13,10 @@ USERS = [  # логін, пароль, група
     ("teacher01", "Teach01-lab", "v67-teachers"),
     ("guest01", "Guest01-lab", "v67-guests"),
 ]
-ZONES = [  # інтерфейс, група, опис, hard timeout (с), 0 = без обмеження
-    ("opt1", "v67-students", "67space STUDENTS", 0),
-    ("opt2", "v67-teachers", "67space TEACHERS", 0),
-    ("opt3", "v67-guests",   "67space GUESTS",   3600),
+ZONES = [  # інтерфейс, група, опис, сервер автентифікації, hard timeout (ХВИЛИНИ), 0 = без обмеження
+    ("opt1", "v67-students", "67space STUDENTS", "Local Database", 0),
+    ("opt2", "v67-teachers", "67space TEACHERS", "Local Database", 0),
+    ("opt3", "v67-guests",   "67space GUESTS",   "Vouchers",       60),   # сервер Vouchers створюється вручну в GUI
 ]
 
 
@@ -57,10 +57,10 @@ def zones():
     for row in opn.api("/api/captiveportal/settings/searchZones").get("rows", []):
         if "67space" in row.get("description", ""):
             opn.api(f"/api/captiveportal/settings/delZone/{row['uuid']}", data={})
-    for ifc, g, descr, hard in ZONES:
+    for ifc, g, descr, auth, hard in ZONES:
         grp = by_name("/api/auth/group/search", g)
         show(opn.api("/api/captiveportal/settings/addZone", data={"zone": {
-            "enabled": "1", "interfaces": ifc, "authservers": "Local Database",
+            "enabled": "1", "interfaces": ifc, "authservers": auth,
             "authEnforceGroup": grp["gid"], "concurrentlogins": "0", "idletimeout": "0",
             "hardtimeout": str(hard), "description": descr}}), f"зона {descr} (інтерфейс {ifc}, група {g})")
     show(opn.api("/api/captiveportal/service/reconfigure", data={}), "captive portal застосовано")

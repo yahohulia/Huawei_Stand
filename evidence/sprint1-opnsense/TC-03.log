@@ -1,101 +1,101 @@
 === TC-03 (OPNsense): Рольова сегментація: Студенти / Викладачі / Гості (R-03) ===
-Час запуску: 2026-10-22 10:47:46  |  Середовище: OPNsense 26.7 у VirtualBox + VM alpine-client (VLAN 10/20/30)
+Час запуску: 2026-10-26 18:47:28  |  Середовище: OPNsense 26.7 у VirtualBox + VM alpine-client (VLAN 10/20/30)
 [dev-student] вхід у зону 0 як student01 -> clientState=AUTHORIZED
 [dev-teacher] вхід у зону 1 як teacher01 -> clientState=AUTHORIZED
-[dev-guest] вхід у зону 2 як 7S5jRq -> clientState=AUTHORIZED
+[dev-guest] вхід у зону 2 як HMG7Py -> clientState=AUTHORIZED
 
 -- Крок 1. Адреси, отримані по DHCP від OPNsense
   -> PASS: dev-student: адреса з підмережі 10.67.10.0/24  (очікується: 10.67.10.x)
 [dev-student] $ ip -4 -o addr show | grep -v " lo " | awk "{print \$2, \$4}"; ip route | head -2
-    v10 10.67.10.157/24
-    default via 10.67.10.1 dev v10 metric 213 
-    10.67.10.0/24 dev v10 proto kernel scope link src 10.67.10.157   [rc=0]
+    v10 10.67.10.122/24
+    default via 10.67.10.1 dev v10 metric 202 
+    10.67.10.0/24 dev v10 proto kernel scope link src 10.67.10.122   [rc=0]
   -> PASS: dev-teacher: адреса з підмережі 10.67.20.0/24  (очікується: 10.67.20.x)
 [dev-teacher] $ ip -4 -o addr show | grep -v " lo " | awk "{print \$2, \$4}"; ip route | head -2
-    v20 10.67.20.157/24
-    default via 10.67.20.1 dev v20 metric 214 
-    10.67.20.0/24 dev v20 proto kernel scope link src 10.67.20.157   [rc=0]
+    v20 10.67.20.106/24
+    default via 10.67.20.1 dev v20 metric 202 
+    10.67.20.0/24 dev v20 proto kernel scope link src 10.67.20.106   [rc=0]
   -> PASS: dev-guest: адреса з підмережі 10.67.30.0/24  (очікується: 10.67.30.x)
 [dev-guest] $ ip -4 -o addr show | grep -v " lo " | awk "{print \$2, \$4}"; ip route | head -2
-    v30 10.67.30.157/24
-    default via 10.67.30.1 dev v30 metric 215 
-    10.67.30.0/24 dev v30 proto kernel scope link src 10.67.30.157   [rc=0]
+    v30 10.67.30.190/24
+    default via 10.67.30.1 dev v30 metric 202 
+    10.67.30.0/24 dev v30 proto kernel scope link src 10.67.30.190   [rc=0]
 
 -- Крок 2. Спроби дістатися пристроїв інших сегментів (ping + TCP :8000 + nmap)
-[dev-student] $ ping -c2 -W1 10.67.20.157
-    PING 10.67.20.157 (10.67.20.157) 56(84) bytes of data.
+[dev-student] $ ping -c2 -W1 10.67.20.106
+    PING 10.67.20.106 (10.67.20.106) 56(84) bytes of data.
     
-    --- 10.67.20.157 ping statistics ---
-    2 packets transmitted, 0 received, 100% packet loss, time 1026ms   [rc=1]
-  -> PASS: dev-student -> dev-teacher (10.67.20.157): ping заблоковано  (очікується: 100% втрат)
-[dev-student] $ curl -s -m 4 -o /dev/null -w "%{http_code}" http://10.67.20.157:8000/
+    --- 10.67.20.106 ping statistics ---
+    2 packets transmitted, 0 received, 100% packet loss, time 1043ms   [rc=1]
+  -> PASS: dev-student -> dev-teacher (10.67.20.106): ping заблоковано  (очікується: 100% втрат)
+[dev-student] $ curl -s -m 4 -o /dev/null -w "%{http_code}" http://10.67.20.106:8000/
     000   [rc=28]
   -> PASS: dev-student -> dev-teacher: TCP :8000 недоступний  (очікується: немає з'єднання)
-[dev-student] $ ping -c2 -W1 10.67.30.157
-    PING 10.67.30.157 (10.67.30.157) 56(84) bytes of data.
+[dev-student] $ ping -c2 -W1 10.67.30.190
+    PING 10.67.30.190 (10.67.30.190) 56(84) bytes of data.
     
-    --- 10.67.30.157 ping statistics ---
-    2 packets transmitted, 0 received, 100% packet loss, time 1036ms   [rc=1]
-  -> PASS: dev-student -> dev-guest (10.67.30.157): ping заблоковано  (очікується: 100% втрат)
-[dev-student] $ curl -s -m 4 -o /dev/null -w "%{http_code}" http://10.67.30.157:8000/
+    --- 10.67.30.190 ping statistics ---
+    2 packets transmitted, 0 received, 100% packet loss, time 1067ms   [rc=1]
+  -> PASS: dev-student -> dev-guest (10.67.30.190): ping заблоковано  (очікується: 100% втрат)
+[dev-student] $ curl -s -m 4 -o /dev/null -w "%{http_code}" http://10.67.30.190:8000/
     000   [rc=28]
   -> PASS: dev-student -> dev-guest: TCP :8000 недоступний  (очікується: немає з'єднання)
 [dev-student] $ curl -sk -m 4 -o /dev/null -w "%{http_code}" https://10.67.20.1/
     000   [rc=28]
-[dev-student] $ nmap -Pn -n -p 8000 --max-retries 1 --host-timeout 12s 10.67.20.157 10.67.30.157 | grep -E "Nmap scan|8000"
-    Nmap scan report for 10.67.20.157
+[dev-student] $ nmap -Pn -n -p 8000 --max-retries 1 --host-timeout 12s 10.67.20.106 10.67.30.190 | grep -E "Nmap scan|8000"
+    Nmap scan report for 10.67.20.106
     8000/tcp filtered http-alt
-    Nmap scan report for 10.67.30.157
+    Nmap scan report for 10.67.30.190
     8000/tcp filtered http-alt   [rc=0]
-[dev-teacher] $ ping -c2 -W1 10.67.10.157
-    PING 10.67.10.157 (10.67.10.157) 56(84) bytes of data.
+[dev-teacher] $ ping -c2 -W1 10.67.10.122
+    PING 10.67.10.122 (10.67.10.122) 56(84) bytes of data.
     
-    --- 10.67.10.157 ping statistics ---
-    2 packets transmitted, 0 received, 100% packet loss, time 1059ms   [rc=1]
-  -> PASS: dev-teacher -> dev-student (10.67.10.157): ping заблоковано  (очікується: 100% втрат)
-[dev-teacher] $ curl -s -m 4 -o /dev/null -w "%{http_code}" http://10.67.10.157:8000/
+    --- 10.67.10.122 ping statistics ---
+    2 packets transmitted, 0 received, 100% packet loss, time 1016ms   [rc=1]
+  -> PASS: dev-teacher -> dev-student (10.67.10.122): ping заблоковано  (очікується: 100% втрат)
+[dev-teacher] $ curl -s -m 4 -o /dev/null -w "%{http_code}" http://10.67.10.122:8000/
     000   [rc=28]
   -> PASS: dev-teacher -> dev-student: TCP :8000 недоступний  (очікується: немає з'єднання)
-[dev-teacher] $ ping -c2 -W1 10.67.30.157
-    PING 10.67.30.157 (10.67.30.157) 56(84) bytes of data.
+[dev-teacher] $ ping -c2 -W1 10.67.30.190
+    PING 10.67.30.190 (10.67.30.190) 56(84) bytes of data.
     
-    --- 10.67.30.157 ping statistics ---
-    2 packets transmitted, 0 received, 100% packet loss, time 1008ms   [rc=1]
-  -> PASS: dev-teacher -> dev-guest (10.67.30.157): ping заблоковано  (очікується: 100% втрат)
-[dev-teacher] $ curl -s -m 4 -o /dev/null -w "%{http_code}" http://10.67.30.157:8000/
+    --- 10.67.30.190 ping statistics ---
+    2 packets transmitted, 0 received, 100% packet loss, time 1018ms   [rc=1]
+  -> PASS: dev-teacher -> dev-guest (10.67.30.190): ping заблоковано  (очікується: 100% втрат)
+[dev-teacher] $ curl -s -m 4 -o /dev/null -w "%{http_code}" http://10.67.30.190:8000/
     000   [rc=28]
   -> PASS: dev-teacher -> dev-guest: TCP :8000 недоступний  (очікується: немає з'єднання)
 [dev-teacher] $ curl -sk -m 4 -o /dev/null -w "%{http_code}" https://10.67.10.1/
     000   [rc=28]
-[dev-teacher] $ nmap -Pn -n -p 8000 --max-retries 1 --host-timeout 12s 10.67.10.157 10.67.30.157 | grep -E "Nmap scan|8000"
-    Nmap scan report for 10.67.10.157
+[dev-teacher] $ nmap -Pn -n -p 8000 --max-retries 1 --host-timeout 12s 10.67.10.122 10.67.30.190 | grep -E "Nmap scan|8000"
+    Nmap scan report for 10.67.10.122
     8000/tcp filtered http-alt
-    Nmap scan report for 10.67.30.157
+    Nmap scan report for 10.67.30.190
     8000/tcp filtered http-alt   [rc=0]
-[dev-guest] $ ping -c2 -W1 10.67.10.157
-    PING 10.67.10.157 (10.67.10.157) 56(84) bytes of data.
+[dev-guest] $ ping -c2 -W1 10.67.10.122
+    PING 10.67.10.122 (10.67.10.122) 56(84) bytes of data.
     
-    --- 10.67.10.157 ping statistics ---
-    2 packets transmitted, 0 received, 100% packet loss, time 1053ms   [rc=1]
-  -> PASS: dev-guest -> dev-student (10.67.10.157): ping заблоковано  (очікується: 100% втрат)
-[dev-guest] $ curl -s -m 4 -o /dev/null -w "%{http_code}" http://10.67.10.157:8000/
+    --- 10.67.10.122 ping statistics ---
+    2 packets transmitted, 0 received, 100% packet loss, time 1029ms   [rc=1]
+  -> PASS: dev-guest -> dev-student (10.67.10.122): ping заблоковано  (очікується: 100% втрат)
+[dev-guest] $ curl -s -m 4 -o /dev/null -w "%{http_code}" http://10.67.10.122:8000/
     000   [rc=28]
   -> PASS: dev-guest -> dev-student: TCP :8000 недоступний  (очікується: немає з'єднання)
-[dev-guest] $ ping -c2 -W1 10.67.20.157
-    PING 10.67.20.157 (10.67.20.157) 56(84) bytes of data.
+[dev-guest] $ ping -c2 -W1 10.67.20.106
+    PING 10.67.20.106 (10.67.20.106) 56(84) bytes of data.
     
-    --- 10.67.20.157 ping statistics ---
-    2 packets transmitted, 0 received, 100% packet loss, time 1046ms   [rc=1]
-  -> PASS: dev-guest -> dev-teacher (10.67.20.157): ping заблоковано  (очікується: 100% втрат)
-[dev-guest] $ curl -s -m 4 -o /dev/null -w "%{http_code}" http://10.67.20.157:8000/
+    --- 10.67.20.106 ping statistics ---
+    2 packets transmitted, 0 received, 100% packet loss, time 1026ms   [rc=1]
+  -> PASS: dev-guest -> dev-teacher (10.67.20.106): ping заблоковано  (очікується: 100% втрат)
+[dev-guest] $ curl -s -m 4 -o /dev/null -w "%{http_code}" http://10.67.20.106:8000/
     000   [rc=28]
   -> PASS: dev-guest -> dev-teacher: TCP :8000 недоступний  (очікується: немає з'єднання)
 [dev-guest] $ curl -sk -m 4 -o /dev/null -w "%{http_code}" https://10.67.10.1/
     000   [rc=28]
-[dev-guest] $ nmap -Pn -n -p 8000 --max-retries 1 --host-timeout 12s 10.67.10.157 10.67.20.157 | grep -E "Nmap scan|8000"
-    Nmap scan report for 10.67.10.157
+[dev-guest] $ nmap -Pn -n -p 8000 --max-retries 1 --host-timeout 12s 10.67.10.122 10.67.20.106 | grep -E "Nmap scan|8000"
+    Nmap scan report for 10.67.10.122
     8000/tcp filtered http-alt
-    Nmap scan report for 10.67.20.157
+    Nmap scan report for 10.67.20.106
     8000/tcp filtered http-alt   [rc=0]
 
 -- Крок 3. Контроль: легітимний доступ працює
@@ -117,28 +117,28 @@
 
 -- Evidence: записи блокування у журналі firewall OPNsense
 [firewall log] block, джерело 10.67.10.x (STUDENTS): 20 записів
-    2026-10-22T07:48:09  vlan0.10  10.67.10.157 -> 10.67.20.157  proto=tcp dport=8000
-    2026-10-22T07:48:09  vlan0.10  10.67.10.157 -> 10.67.30.157  proto=tcp dport=8000
-    2026-10-22T07:48:08  vlan0.10  10.67.10.157 -> 10.67.20.157  proto=tcp dport=8000
-    2026-10-22T07:48:08  vlan0.10  10.67.10.157 -> 10.67.30.157  proto=tcp dport=8000
-    2026-10-22T07:48:06  vlan0.10  10.67.10.157 -> 10.67.20.1  proto=tcp dport=443
-    2026-10-22T07:48:05  vlan0.10  10.67.10.157 -> 10.67.20.1  proto=tcp dport=443
+    2026-10-26T16:47:55  vlan0.10  10.67.10.122 -> 10.67.20.106  proto=tcp dport=8000
+    2026-10-26T16:47:55  vlan0.10  10.67.10.122 -> 10.67.30.190  proto=tcp dport=8000
+    2026-10-26T16:47:54  vlan0.10  10.67.10.122 -> 10.67.20.106  proto=tcp dport=8000
+    2026-10-26T16:47:54  vlan0.10  10.67.10.122 -> 10.67.30.190  proto=tcp dport=8000
+    2026-10-26T16:47:53  vlan0.10  10.67.10.122 -> 10.67.20.1  proto=tcp dport=443
+    2026-10-26T16:47:52  vlan0.10  10.67.10.122 -> 10.67.20.1  proto=tcp dport=443
   -> PASS: Firewall зафіксував блокування від STUDENTS  (очікується: є записи block)
 [firewall log] block, джерело 10.67.20.x (TEACHERS): 20 записів
-    2026-10-22T07:48:28  vlan0.20  10.67.20.157 -> 10.67.10.157  proto=tcp dport=8000
-    2026-10-22T07:48:28  vlan0.20  10.67.20.157 -> 10.67.30.157  proto=tcp dport=8000
-    2026-10-22T07:48:27  vlan0.20  10.67.20.157 -> 10.67.10.157  proto=tcp dport=8000
-    2026-10-22T07:48:27  vlan0.20  10.67.20.157 -> 10.67.30.157  proto=tcp dport=8000
-    2026-10-22T07:48:26  vlan0.20  10.67.20.157 -> 10.67.10.1  proto=tcp dport=443
-    2026-10-22T07:48:25  vlan0.20  10.67.20.157 -> 10.67.10.1  proto=tcp dport=443
+    2026-10-26T16:48:16  vlan0.20  10.67.20.106 -> 10.67.30.190  proto=tcp dport=8000
+    2026-10-26T16:48:16  vlan0.20  10.67.20.106 -> 10.67.10.122  proto=tcp dport=8000
+    2026-10-26T16:48:15  vlan0.20  10.67.20.106 -> 10.67.10.122  proto=tcp dport=8000
+    2026-10-26T16:48:15  vlan0.20  10.67.20.106 -> 10.67.30.190  proto=tcp dport=8000
+    2026-10-26T16:48:14  vlan0.20  10.67.20.106 -> 10.67.10.1  proto=tcp dport=443
+    2026-10-26T16:48:13  vlan0.20  10.67.20.106 -> 10.67.10.1  proto=tcp dport=443
   -> PASS: Firewall зафіксував блокування від TEACHERS  (очікується: є записи block)
 [firewall log] block, джерело 10.67.30.x (GUESTS): 20 записів
-    2026-10-22T07:48:49  vlan0.30  10.67.30.157 -> 10.67.10.157  proto=tcp dport=8000
-    2026-10-22T07:48:49  vlan0.30  10.67.30.157 -> 10.67.20.157  proto=tcp dport=8000
-    2026-10-22T07:48:48  vlan0.30  10.67.30.157 -> 10.67.10.157  proto=tcp dport=8000
-    2026-10-22T07:48:48  vlan0.30  10.67.30.157 -> 10.67.20.157  proto=tcp dport=8000
-    2026-10-22T07:48:47  vlan0.30  10.67.30.157 -> 10.67.10.1  proto=tcp dport=443
-    2026-10-22T07:48:46  vlan0.30  10.67.30.157 -> 10.67.10.1  proto=tcp dport=443
+    2026-10-26T16:48:37  vlan0.30  10.67.30.190 -> 10.67.20.106  proto=tcp dport=8000
+    2026-10-26T16:48:37  vlan0.30  10.67.30.190 -> 10.67.10.122  proto=tcp dport=8000
+    2026-10-26T16:48:36  vlan0.30  10.67.30.190 -> 10.67.20.106  proto=tcp dport=8000
+    2026-10-26T16:48:36  vlan0.30  10.67.30.190 -> 10.67.10.122  proto=tcp dport=8000
+    2026-10-26T16:48:34  vlan0.30  10.67.30.190 -> 10.67.10.1  proto=tcp dport=443
+    2026-10-26T16:48:33  vlan0.30  10.67.30.190 -> 10.67.10.1  proto=tcp dport=443
   -> PASS: Firewall зафіксував блокування від GUESTS  (очікується: є записи block)
 
 [OPNsense] правила firewall збережено в firewall-rules.txt

@@ -1,0 +1,148 @@
+[
+  {
+    "tc": "SC-01",
+    "title": "Базова версія запускається",
+    "status": "PASS",
+    "checks": [
+      {
+        "check": "OPNsense відповідає через API",
+        "ok": true,
+        "expected": "є відповідь"
+      },
+      {
+        "check": "Конфігурація збігається з базовою версією Freeze",
+        "ok": true,
+        "expected": "однакові SHA-256"
+      },
+      {
+        "check": "alpine-client відповідає по SSH",
+        "ok": true,
+        "expected": "rc=0"
+      },
+      {
+        "check": "dev-student отримав адресу у своєму VLAN",
+        "ok": true,
+        "expected": "10.67.10.x"
+      },
+      {
+        "check": "dev-teacher отримав адресу у своєму VLAN",
+        "ok": true,
+        "expected": "10.67.20.x"
+      },
+      {
+        "check": "dev-guest отримав адресу у своєму VLAN",
+        "ok": true,
+        "expected": "10.67.30.x"
+      },
+      {
+        "check": "Точки доступу AP-1…AP-3 доступні",
+        "ok": true,
+        "expected": "3 x UP"
+      }
+    ]
+  },
+  {
+    "tc": "SC-02",
+    "title": "Ключовий сценарій працює від початку до кінця",
+    "status": "PASS",
+    "checks": [
+      {
+        "check": "До входу студента перенаправлено на сторінку входу",
+        "ok": true,
+        "expected": "302 -> портал"
+      },
+      {
+        "check": "Студент увійшов",
+        "ok": true,
+        "expected": "AUTHORIZED"
+      },
+      {
+        "check": "Студент має інтернет",
+        "ok": true,
+        "expected": "200/301"
+      },
+      {
+        "check": "Студент має внутрішній сервер",
+        "ok": true,
+        "expected": "INTRANET-OK"
+      },
+      {
+        "check": "Гість увійшов за новим ваучером",
+        "ok": true,
+        "expected": "AUTHORIZED"
+      },
+      {
+        "check": "Гість має інтернет",
+        "ok": true,
+        "expected": "200/301"
+      },
+      {
+        "check": "Гість не має внутрішнього сервера",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "Панель моніторингу бачить сесії студента й гостя",
+        "ok": true,
+        "expected": "1 і 1"
+      }
+    ]
+  },
+  {
+    "tc": "SC-03",
+    "title": "Матеріали й середовище для Testing готові",
+    "status": "PASS",
+    "checks": [
+      {
+        "check": "Є README.md",
+        "ok": true,
+        "expected": "файл існує"
+      },
+      {
+        "check": "Є scripts/run_opn_tests.py",
+        "ok": true,
+        "expected": "файл існує"
+      },
+      {
+        "check": "Є scripts/run_sprint2_tests.py",
+        "ok": true,
+        "expected": "файл існує"
+      },
+      {
+        "check": "Є scripts/portal_screens.py",
+        "ok": true,
+        "expected": "файл існує"
+      },
+      {
+        "check": "Є scripts/client_devices.sh",
+        "ok": true,
+        "expected": "файл існує"
+      },
+      {
+        "check": "Є scripts/load_clients.sh",
+        "ok": true,
+        "expected": "файл існує"
+      },
+      {
+        "check": "Є scripts/monitor.py",
+        "ok": true,
+        "expected": "файл існує"
+      },
+      {
+        "check": "Є ../Drive_package/03_Образи_VM/ІМПОРТ.txt",
+        "ok": true,
+        "expected": "файл існує"
+      },
+      {
+        "check": "Тестові акаунти студентів і викладача на місці",
+        "ok": true,
+        "expected": "є"
+      },
+      {
+        "check": "Генерація гостьових ваучерів працює",
+        "ok": true,
+        "expected": "ваучер створено"
+      }
+    ]
+  }
+]

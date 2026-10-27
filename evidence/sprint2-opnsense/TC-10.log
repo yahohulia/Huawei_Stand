@@ -1,0 +1,63 @@
+=== TC-10 (OPNsense): Відтворення конфігурації за інструкцією (R-11), модельна перевірка ===
+Час запуску: 2026-10-26 19:03:03  |  Середовище: OPNsense 26.7 у VirtualBox + VM alpine-client (VLAN 10/20/30)
+Перевірка: налаштування мережі заново застосовуються скриптами з інструкції (README.md, розділ «Як відтворити»), після чого всі тести проходять. Перевірку незалежною людиною передано на етап Testing.
+
+$ python opnsense_setup_sprint1.py  (код 0)
+    DHCP (dnsmasq)
+      OK   dnsmasq слухає lan,opt1,opt2,opt3 
+      OK   діапазон STUDENTS: 10.67.10.100-10.67.10.199, оренда 28800 с 
+      OK   діапазон TEACHERS: 10.67.20.100-10.67.20.199, оренда 28800 с 
+      OK   діапазон GUESTS: 10.67.30.100-10.67.30.199, оренда 3600 с 
+      OK   dnsmasq застосовано 
+    Аліаси
+      OK   аліас v67_PRIVATE_NETS 
+      OK   аліас v67_UNI_INTERNAL 
+      OK   аліаси застосовано 
+    Firewall
+      OK   67space STUDENTS: DHCP 
+      OK   67space STUDENTS: DNS на шлюзі 
+      OK   67space STUDENTS: внутрішні ресурси університету 
+      OK   67space STUDENTS: заборона до інших сегментів і керування (R-03, R-08) 
+      OK   67space STUDENTS: інтернет 
+      OK   67space TEACHERS: DHCP 
+      OK   67space TEACHERS: DNS на шлюзі 
+      OK   67space TEACHERS: внутрішні ресурси університету 
+      OK   67space TEACHERS: заборона до інших сегментів і керування (R-03, R-08) 
+      OK   67space TEACHERS: інтернет 
+      OK   67space GUESTS: DHCP 
+      OK   67space GUESTS: DNS на шлюзі 
+      OK   67space GUESTS: заборона до інших сегментів і керування (R-03, R-08) 
+      OK   67space GUESTS: інтернет 
+      OK   правила застосовано
+  -> PASS: opnsense_setup_sprint1.py виконано без помилок  (очікується: усі кроки OK)
+
+$ python opnsense_setup_sprint2.py  (код 0)
+    Гостьова зона captive portal
+      OK   GUESTS: idle 15 хв, hard 60 хв, вхід за ваучерами 
+      OK   captive portal застосовано 
+    Traffic shaper: 3 Мбіт/с на кожен гостьовий пристрій
+      OK   pipe завантаження 3 Мбіт/с, маска dst-ip 
+      OK   правило shaper GUESTS (out) 
+      OK   pipe вивантаження 3 Мбіт/с, маска src-ip 
+      OK   правило shaper GUESTS (in) 
+      OK   shaper застосовано 
+    Monit: перевірка доступності точок доступу
+      OK   Monit увімкнено, інтервал 10 с 
+      OK   AP-1 (192.168.56.31): ping 
+      OK   AP-2 (192.168.56.32): ping 
+      OK   AP-3 (192.168.56.33): ping 
+      OK   Monit застосовано 
+    Журнали
+      OK   журнали зберігаються 31 днів 
+      OK   syslog застосовано
+  -> PASS: opnsense_setup_sprint2.py виконано без помилок  (очікується: усі кроки OK)
+
+-- Регрес Sprint 1 після повторного розгортання
+TC-04: PASS (25/25)
+  -> PASS: TC-04 після повторного розгортання  (очікується: PASS)
+TC-03: PASS (23/23)
+  -> PASS: TC-03 після повторного розгортання  (очікується: PASS)
+TC-08: PASS (9/9)
+  -> PASS: TC-08 після повторного розгортання  (очікується: PASS)
+
+ПІДСУМОК TC-10: PASS (5/5 перевірок)

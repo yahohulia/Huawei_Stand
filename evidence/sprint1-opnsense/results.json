@@ -152,7 +152,7 @@
         "expected": "10.67.30.x"
       },
       {
-        "check": "dev-student -> dev-teacher (10.67.20.157): ping заблоковано",
+        "check": "dev-student -> dev-teacher (10.67.20.106): ping заблоковано",
         "ok": true,
         "expected": "100% втрат"
       },
@@ -162,7 +162,7 @@
         "expected": "немає з'єднання"
       },
       {
-        "check": "dev-student -> dev-guest (10.67.30.157): ping заблоковано",
+        "check": "dev-student -> dev-guest (10.67.30.190): ping заблоковано",
         "ok": true,
         "expected": "100% втрат"
       },
@@ -172,7 +172,7 @@
         "expected": "немає з'єднання"
       },
       {
-        "check": "dev-teacher -> dev-student (10.67.10.157): ping заблоковано",
+        "check": "dev-teacher -> dev-student (10.67.10.122): ping заблоковано",
         "ok": true,
         "expected": "100% втрат"
       },
@@ -182,7 +182,7 @@
         "expected": "немає з'єднання"
       },
       {
-        "check": "dev-teacher -> dev-guest (10.67.30.157): ping заблоковано",
+        "check": "dev-teacher -> dev-guest (10.67.30.190): ping заблоковано",
         "ok": true,
         "expected": "100% втрат"
       },
@@ -192,7 +192,7 @@
         "expected": "немає з'єднання"
       },
       {
-        "check": "dev-guest -> dev-student (10.67.10.157): ping заблоковано",
+        "check": "dev-guest -> dev-student (10.67.10.122): ping заблоковано",
         "ok": true,
         "expected": "100% втрат"
       },
@@ -202,7 +202,7 @@
         "expected": "немає з'єднання"
       },
       {
-        "check": "dev-guest -> dev-teacher (10.67.20.157): ping заблоковано",
+        "check": "dev-guest -> dev-teacher (10.67.20.106): ping заблоковано",
         "ok": true,
         "expected": "100% втрат"
       },

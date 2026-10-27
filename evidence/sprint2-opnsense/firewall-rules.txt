@@ -1,0 +1,14 @@
+  111 opt1  pass   dst=any                  67space STUDENTS: DHCP
+  211 opt1  pass   dst=opt1ip               67space STUDENTS: DNS на шлюзі
+  311 opt1  pass   dst=v67_UNI_INTERNAL     67space STUDENTS: внутрішні ресурси університету
+  411 opt1  block  dst=v67_PRIVATE_NETS     67space STUDENTS: заборона до інших сегментів і керування (R-03, R-08)
+  511 opt1  pass   dst=any                  67space STUDENTS: інтернет
+  611 opt2  pass   dst=any                  67space TEACHERS: DHCP
+  711 opt2  pass   dst=opt2ip               67space TEACHERS: DNS на шлюзі
+  811 opt2  pass   dst=v67_UNI_INTERNAL     67space TEACHERS: внутрішні ресурси університету
+  911 opt2  block  dst=v67_PRIVATE_NETS     67space TEACHERS: заборона до інших сегментів і керування (R-03, R-08)
+ 1011 opt2  pass   dst=any                  67space TEACHERS: інтернет
+ 1111 opt3  pass   dst=any                  67space GUESTS: DHCP
+ 1211 opt3  pass   dst=opt3ip               67space GUESTS: DNS на шлюзі
+ 1311 opt3  block  dst=v67_PRIVATE_NETS     67space GUESTS: заборона до інших сегментів і керування (R-03, R-08)
+ 1411 opt3  pass   dst=any                  67space GUESTS: інтернет

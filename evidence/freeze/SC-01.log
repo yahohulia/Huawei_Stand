@@ -1,0 +1,19 @@
+=== SC-01 (OPNsense): Базова версія запускається ===
+Час запуску: 2026-10-26 21:49:46  |  Середовище: OPNsense 26.7 у VirtualBox + VM alpine-client (VLAN 10/20/30)
+[OPNsense] версія 26.7.7, uptime 00:02:48, час Mon Oct 26 19:49:45 UTC 2026
+  -> PASS: OPNsense відповідає через API  (очікується: є відповідь)
+[OPNsense] SHA-256 конфігурації: 95d2004200b7b0394959dbd6ab33f7537f075e0cac47814d2e013f815a97e2df
+[Freeze]   SHA-256 резервної копії: 95d2004200b7b0394959dbd6ab33f7537f075e0cac47814d2e013f815a97e2df
+  -> PASS: Конфігурація збігається з базовою версією Freeze  (очікується: однакові SHA-256)
+[alpine-client] 21:49:46 up 14 min,  0 users,  load average: 0.17, 0.08, 0.04
+  -> PASS: alpine-client відповідає по SSH  (очікується: rc=0)
+[dev-student] адреса 10.67.10.122
+  -> PASS: dev-student отримав адресу у своєму VLAN  (очікується: 10.67.10.x)
+[dev-teacher] адреса 10.67.20.106
+  -> PASS: dev-teacher отримав адресу у своєму VLAN  (очікується: 10.67.20.x)
+[dev-guest] адреса 10.67.30.190
+  -> PASS: dev-guest отримав адресу у своєму VLAN  (очікується: 10.67.30.x)
+[Monit] {'AP-1': True, 'AP-2': True, 'AP-3': True}
+  -> PASS: Точки доступу AP-1…AP-3 доступні  (очікується: 3 x UP)
+
+ПІДСУМОК SC-01: PASS (7/7 перевірок)

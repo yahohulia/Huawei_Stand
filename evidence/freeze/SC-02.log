@@ -1,0 +1,25 @@
+=== SC-02 (OPNsense): Ключовий сценарій працює від початку до кінця ===
+Час запуску: 2026-10-26 21:49:50  |  Середовище: OPNsense 26.7 у VirtualBox + VM alpine-client (VLAN 10/20/30)
+[dev-student] $ curl -s -m 6 -o /dev/null -w "%{http_code} %{redirect_url}" http://1.1.1.1/
+    302 http://10.67.10.1:8000/index.html?redirurl=1.1.1.1/   [rc=0]
+  -> PASS: До входу студента перенаправлено на сторінку входу  (очікується: 302 -> портал)
+[dev-student] вхід у зону 0 як student01 -> clientState=AUTHORIZED
+  -> PASS: Студент увійшов  (очікується: AUTHORIZED)
+[dev-student] $ curl -s -m 8 -o /dev/null -w "%{http_code}" http://1.1.1.1/
+    301   [rc=0]
+  -> PASS: Студент має інтернет  (очікується: 200/301)
+[dev-student] $ curl -s -m 5 http://192.168.56.20/
+    INTRANET-OK   [rc=0]
+  -> PASS: Студент має внутрішній сервер  (очікується: INTRANET-OK)
+[dev-guest] вхід у зону 2 як 6MAdCb -> clientState=AUTHORIZED
+  -> PASS: Гість увійшов за новим ваучером  (очікується: AUTHORIZED)
+[dev-guest] $ curl -s -m 8 -o /dev/null -w "%{http_code}" http://1.1.1.1/
+    301   [rc=0]
+  -> PASS: Гість має інтернет  (очікується: 200/301)
+[dev-guest] $ curl -s -m 5 -o /dev/null -w "%{http_code}" http://192.168.56.20/
+    000   [rc=28]
+  -> PASS: Гість не має внутрішнього сервера  (очікується: немає з'єднання)
+[панель моніторингу] сесії: {'STUDENTS': 1, 'TEACHERS': 0, 'GUESTS': 1}; точки доступу: AP-1 UP, AP-2 UP, AP-3 UP
+  -> PASS: Панель моніторингу бачить сесії студента й гостя  (очікується: 1 і 1)
+
+ПІДСУМОК SC-02: PASS (8/8 перевірок)

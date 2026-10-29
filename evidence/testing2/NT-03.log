@@ -1,0 +1,53 @@
+=== NT-03 (OPNsense): Некоректне введення й підбір пароля на сторінці входу (R-04) ===
+Час запуску: 2026-10-27 21:38:00  |  Середовище: OPNsense 26.7 у VirtualBox + VM alpine-client (VLAN 10/20/30)
+
+-- Крок 1. Некоректні й шкідливі значення полів
+[dev-student] вхід user='' password='' -> HTTP 200, clientState=NOT_AUTHORIZED
+  -> PASS: Відмова без збою: user=''  (очікується: NOT_AUTHORIZED або HTTP 400/413)
+[dev-student] вхід user='student01' password='' -> HTTP 200, clientState=NOT_AUTHORIZED
+  -> PASS: Відмова без збою: user='student01'  (очікується: NOT_AUTHORIZED або HTTP 400/413)
+[dev-student] вхід user='' password='Stud01-lab' -> HTTP 200, clientState=NOT_AUTHORIZED
+  -> PASS: Відмова без збою: user=''  (очікується: NOT_AUTHORIZED або HTTP 400/413)
+[dev-student] вхід user='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'…(4096) password='x' -> HTTP 413, clientState=no-json
+  -> PASS: Відмова без збою: user='aaaaaaaaaaaaaaaaaaaaaaaa'  (очікується: NOT_AUTHORIZED або HTTP 400/413)
+[dev-student] вхід user="' OR '1'='1" password="' OR '1'='1" -> HTTP 200, clientState=NOT_AUTHORIZED
+  -> PASS: Відмова без збою: user="' OR '1'='1"  (очікується: NOT_AUTHORIZED або HTTP 400/413)
+[dev-student] вхід user="student01' -- " password='x' -> HTTP 200, clientState=NOT_AUTHORIZED
+  -> PASS: Відмова без збою: user="student01' -- "  (очікується: NOT_AUTHORIZED або HTTP 400/413)
+[dev-student] вхід user='student01" or "1"="1' password='x' -> HTTP 200, clientState=NOT_AUTHORIZED
+  -> PASS: Відмова без збою: user='student01" or "1"="1'  (очікується: NOT_AUTHORIZED або HTTP 400/413)
+[dev-student] вхід user='<script>alert(1)</script>' password='x' -> HTTP 200, clientState=NOT_AUTHORIZED
+  -> PASS: Відмова без збою: user='<script>alert(1)</script'  (очікується: NOT_AUTHORIZED або HTTP 400/413)
+[dev-student] вхід user='../../etc/passwd' password='x' -> HTTP 200, clientState=NOT_AUTHORIZED
+  -> PASS: Відмова без збою: user='../../etc/passwd'  (очікується: NOT_AUTHORIZED або HTTP 400/413)
+[dev-student] вхід user='STUDENT01' password='Stud01-lab' -> HTTP 200, clientState=NOT_AUTHORIZED
+  -> PASS: Відмова без збою: user='STUDENT01'  (очікується: NOT_AUTHORIZED або HTTP 400/413)
+[dev-student] вхід user='student01' password='stud01-lab' -> HTTP 200, clientState=NOT_AUTHORIZED
+  -> PASS: Відмова без збою: user='student01'  (очікується: NOT_AUTHORIZED або HTTP 400/413)
+[dev-student] вхід user='student01 ' password='Stud01-lab' -> HTTP 200, clientState=NOT_AUTHORIZED
+  -> PASS: Відмова без збою: user='student01 '  (очікується: NOT_AUTHORIZED або HTTP 400/413)
+
+-- Крок 2. Підбір пароля: 30 хибних паролів поспіль для student01
+[dev-student] 30 спроб за 75.8 с: NOT_AUTHORIZED x30
+  -> PASS: Жодна з 30 хибних спроб не дала доступу  (очікується: 30 x NOT_AUTHORIZED)
+
+-- Крок 3. Після атак: портал працює, доступ без входу закритий
+[dev-student] $ curl -s -m 6 -o /dev/null -w "%{http_code}" http://10.67.10.1:8000/index.html
+    200   [rc=0]
+  -> PASS: Сторінка входу відкривається  (очікується: 200)
+[dev-student] $ curl -s -m 6 -o /dev/null -w "%{http_code}" http://1.1.1.1/
+    302   [rc=0]
+  -> PASS: Інтернет без входу закритий  (очікується: 302 -> портал)
+[dev-student] вхід user='student01' password='Stud01-lab' -> HTTP 200, clientState=AUTHORIZED
+  -> PASS: Правильний вхід після атак працює (немає відмови в обслуговуванні)  (очікується: AUTHORIZED)
+[dev-student] $ curl -s -m 8 -o /dev/null -w "%{http_code}" http://1.1.1.1/
+    301   [rc=0]
+  -> PASS: Після входу є інтернет  (очікується: 200/301)
+
+[OPNsense, журнал порталу] невдалих входів student01 у журналі: 51
+    2026-10-27T19:39:47 DENY student01 (10.67.10.122) zone 0
+    2026-10-27T19:39:44 DENY student01 (10.67.10.122) zone 0
+    2026-10-27T19:39:42 DENY student01 (10.67.10.122) zone 0
+  -> PASS: Невдалі спроби входу видно в журналі порталу  (очікується: >= 30 записів)
+
+ПІДСУМОК NT-03: PASS (18/18 перевірок)

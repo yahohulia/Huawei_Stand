@@ -43,6 +43,13 @@ def ts(epoch):
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(float(epoch)))
 
 
+def short(e):
+    """Зрозумілий текст помилки джерела: збій мережі — «немає зв'язку з OPNsense», інше — коротко."""
+    if isinstance(e, (OSError, TimeoutError)):   # URLError, timeout, відмова з'єднання
+        return f"немає зв'язку з OPNsense ({opn.HOST})"
+    return str(e)[:120]
+
+
 def append(path, fields, row):
     new = not os.path.exists(path)
     with open(path, "a", newline="", encoding="utf-8") as f:
@@ -174,22 +181,27 @@ class Monitor:
         return res, gw
 
     def poll(self):
+        # D-04 (заняття 17): при збої джерела не видавати останні дані за поточні — стан точок «невідомо»,
+        # «Оновлено» — час останнього повністю успішного опитування
         errors = []
         try:
             seg = self.sessions()
         except Exception as e:  # noqa: BLE001 — панель має працювати навіть при збої одного джерела
-            seg, errors = self.state["segments"], errors + [f"сесії: {e}"]
+            seg, errors = self.state["segments"], errors + [f"сесії: {short(e)}"]
         try:
             links = self.links()
         except Exception as e:  # noqa: BLE001
-            links, errors = self.state["links"], errors + [f"трафік: {e}"]
+            links, errors = {}, errors + [f"трафік: {short(e)}"]
         try:
             aps, gw = self.aps()
         except Exception as e:  # noqa: BLE001
-            aps, gw, errors = self.state["aps"], self.state["gateway"], errors + [f"Monit: {e}"]
+            aps = {n: dict(a, up=None, rtt_ms=None) for n, a in self.state["aps"].items()}
+            gw, errors = {}, errors + [f"Monit: {short(e)}"]
+        now = time.time()
         with self.lock:
-            self.state = {"updated": ts(time.time()), "updated_epoch": time.time(), "segments": seg,
-                          "links": links, "aps": aps, "gateway": gw, "errors": errors}
+            ok_epoch = self.state.get("updated_epoch") if errors else now
+            self.state = {"updated": ts(ok_epoch) if ok_epoch else None, "updated_epoch": ok_epoch, "polled": ts(now), "polled_epoch": now,
+                          "segments": seg, "links": links, "aps": aps, "gateway": gw, "errors": errors}
 
     def loop(self):
         while True:
@@ -207,8 +219,9 @@ def page(st):
     cards = "".join(
         f"<div class=card><div class=k>{e(n)}</div><div class=v>{len(s)}</div><div class=s>активних підключень</div></div>"
         for n, s in st["segments"].items())
+    state = {True: ("up", "доступна"), False: ("down", "НЕДОСТУПНА"), None: ("unk", "НЕВІДОМО")}
     aps = "".join(
-        f"<tr><td>{e(n)}</td><td class={'up' if a['up'] else 'down'}>{'доступна' if a['up'] else 'НЕДОСТУПНА'}</td>"
+        f"<tr><td>{e(n)}</td><td class={state[a['up']][0]}>{state[a['up']][1]}</td>"
         f"<td>{a['rtt_ms'] if a['rtt_ms'] is not None else '—'}</td><td>{e(a['checked'])}</td></tr>"
         for n, a in sorted(st["aps"].items()))
     links = "".join(
@@ -223,7 +236,9 @@ def page(st):
         f"<td>{e(r['start'])}</td><td>{e(r['end'] or 'триває')}</td></tr>"
         for r in read(JOURNAL)[-8:][::-1])
     gw = st.get("gateway") or {}
-    err = "".join(f"<p class=err>Помилка джерела: {e(x)}</p>" for x in st.get("errors", []))
+    err = (f"<p class=err>Помилка джерела даних — {e('; '.join(st['errors']))}. Дані неактуальні: показано останні отримані дані "
+           f"(станом на {e(st['updated'] or '—')}); стан точок доступу невідомий. Остання спроба: {e(st.get('polled', '—'))}</p>"
+           if st.get("errors") else "")
     return f"""<!doctype html><html lang=uk><head><meta charset=utf-8><meta http-equiv=refresh content={POLL_S}>
 <title>67space — моніторинг мережі</title><style>
 body{{font:14px system-ui,Segoe UI,sans-serif;margin:24px;background:#f6f7f9;color:#1d2330}}
@@ -231,10 +246,10 @@ h1{{font-size:20px;margin:0 0 4px}} h2{{font-size:15px;margin:22px 0 8px}} .mute
 .cards{{display:flex;gap:12px;flex-wrap:wrap}} .card{{background:#fff;border:1px solid #dde;border-radius:8px;padding:12px 16px;min-width:150px}}
 .k{{font-size:12px;color:#667}} .v{{font-size:28px;font-weight:600}} .s{{font-size:12px;color:#667}}
 table{{border-collapse:collapse;background:#fff;border:1px solid #dde;min-width:520px}} td,th{{padding:6px 10px;border-bottom:1px solid #eef;text-align:left}}
-th{{font-size:12px;color:#556;background:#fafbfc}} .up{{color:#17803d;font-weight:600}} .down{{color:#c42020;font-weight:700}} .err{{color:#c42020}}
+th{{font-size:12px;color:#556;background:#fafbfc}} .up{{color:#17803d;font-weight:600}} .down{{color:#c42020;font-weight:700}} .unk{{color:#a15c00;font-weight:700}} .err{{color:#c42020;background:#fdecec;border:1px solid #f3b9b9;border-radius:6px;padding:8px 12px}}
 </style></head><body>
 <h1>67space — моніторинг мережі коворкінгу</h1>
-<div class=muted>Оновлено: {e(st['updated'] or '—')} · автооновлення кожні {POLL_S} с · шлюз OPNsense: навантаження {e(str(gw.get('load1', '—')))}, пам'ять {e(str(gw.get('mem_pct', '—')))}%</div>{err}
+<div class=muted>Дані станом на: {e(st['updated'] or '—')} · автооновлення кожні {POLL_S} с · шлюз OPNsense: навантаження {e(str(gw.get('load1', '—')))}, пам'ять {e(str(gw.get('mem_pct', '—')))}%</div>{err}
 <h2>Активні підключення за сегментами</h2><div class=cards>{cards}</div>
 <h2>Стан точок доступу</h2><table><tr><th>Точка</th><th>Стан</th><th>Відгук, мс</th><th>Перевірено</th></tr>{aps}</table>
 <h2>Навантаження каналу, Мбіт/с</h2><table><tr><th>Інтерфейс</th><th>До клієнтів</th><th>Від клієнтів</th></tr>{links}</table>
@@ -264,9 +279,14 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
+_LOOP = []
+
+
 def serve(port=PORT):
     MON.poll()
-    threading.Thread(target=MON.loop, daemon=True).start()
+    if not _LOOP:   # один цикл опитування на процес: повторний serve() (кілька тестів підряд) не множить потоки
+        _LOOP.append(threading.Thread(target=MON.loop, daemon=True))
+        _LOOP[0].start()
     srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     return srv

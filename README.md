@@ -10,7 +10,7 @@ Team-3. Цифрова інфраструктура студентського �
   (LAN `192.168.56.10`, вебінтерфейс `https://192.168.56.10`). На LAN-інтерфейсі VLAN 10 (STUDENTS),
   20 (TEACHERS), 30 (GUESTS) з адресами `10.67.<10|20|30>.1/24`, DHCP, firewall, captive portal
   (по зоні на сегмент, сторінка входу 67space), ваучери для гостей, обмеження швидкості гостей,
-  Monit (перевірка точок доступу).
+  Monit (перевірка точок доступу: власний тест `67space_AP_Ping`, 2 пінги з тайм-аутом 2 с).
 - **VM `alpine-client`** (Alpine Linux, 1 CPU, `192.168.56.20`): модель клієнтів і обладнання.
   - пристрої `dev-student`, `dev-teacher`, `dev-guest` (network namespace, кожен у своєму VLAN, власна MAC,
     адреса по DHCP);
@@ -79,8 +79,12 @@ python scripts/monitor.py         # панель http://127.0.0.1:8067, Ctrl+C �
 - **Ваучери для гостей**: Services → Captive Portal → Vouchers → Create vouchers (сервер `Vouchers`,
   тривалість 1 година). Видавайте гостю логін і пароль із CSV.
 - **Відключити користувача**: Services → Captive Portal → Sessions → Disconnect.
-- **Точка доступу недоступна**: на панелі «НЕДОСТУПНА» (≤ 60 с). Перевірити живлення / кабель точки;
+- **Точка доступу недоступна**: на панелі «НЕДОСТУПНА» (≤ 60 с; на стенді — 14–18 с навіть для всіх трьох). Перевірити живлення / кабель точки;
   у моделі: `ip netns exec ap-2 ip link set mgmt0 up` у alpine-client.
+- **Панель без зв'язку з OPNsense**: червоний банер «Помилка джерела даних — немає зв'язку з OPNsense», стан точок
+  «НЕВІДОМО», «Дані станом на» — час останніх успішних даних. Перевірити, чи відповідає `https://192.168.56.10`.
+- **Перезапуск VM**: лише вимкнення (ACPI / `poweroff` в alpine) і новий запуск. Перезавантаження зсередини VM
+  (reboot) на хості з Hyper-V валить VirtualBox (OPNsense — aborted, alpine зависає в BIOS).
 - **Резервна копія**: System → Configuration → Backups → Download configuration (файл містить хеші
   паролів і ключі: зберігати як секрет). Відновлення: там само → Restore.
 
@@ -91,7 +95,14 @@ python scripts/run_sprint2_tests.py           # Sprint 2: TC-05, TC-07, TC-02, T
 python scripts/run_sprint2_tests.py TC-07     # окремий тест
 python scripts/portal_screens.py              # TC-09 (емуляція): сторінка входу на 4 типах екранів
 python scripts/smoke_check.py                 # Freeze: smoke check базової версії (SC-01…SC-03), ~1 хв
+python scripts/run_testing1.py                # Testing 1: TC-04, TC-03, TC-08, TC-05, TC-07, TC-02 + перевірка baseline, ~15 хв
+python scripts/run_negative_tests.py          # Testing 2: negative-сценарії NT-01…NT-04 + перевірка baseline, ~8 хв
+python scripts/run_retest17.py FINAL          # заняття 17: retest NT-04 + regression TC-05, TC-04, TC-08 на stable-v1.1, ~6 хв
+python scripts/diag_voucher_overlap.py 10     # заняття 17: скільки секунд працюють 2 сесії одного ваучера (ISS-02)
 ```
+Testing 1 і 2 пишуть логи в `evidence/testing1/` і `evidence/testing2/`; перевірка baseline порівнює вміст
+конфігурації OPNsense з резервною копією Freeze без міток часу збереження. Перші прогони збережено в `run1/`
+(`testing2/run2/` — другий прогін negative-сценаріїв).
 Логи пишуться в `evidence/sprint1-opnsense/` і `evidence/sprint2-opnsense/`. Кожен запуск створює свіжі
 ваучери; тест TC-07 на 2 хв скорочує тайм-аут гостьової зони й потім повертає 60 хв; TC-02 створює
 тимчасові акаунти `load-*` і після себе їх видаляє.
@@ -102,6 +113,13 @@ python scripts/smoke_check.py                 # Freeze: smoke check базово
   smoke check перевіряє, що поточна конфігурація з нею збігається.
 - `evidence/freeze/baseline-manifest.txt` — контрольні суми всіх файлів репозиторію на момент Freeze.
 Після Freeze зміни вносяться лише як виправлення знайдених на Testing дефектів, з новою позначкою версії.
+
+## Стабільна версія (заняття 17) — stable-v1.1
+freeze-v1.0 + два точкові виправлення:
+- ISS-01 (D-04): `scripts/monitor.py` — при втраті зв'язку з OPNsense стан точок «НЕВІДОМО», час останніх успішних даних;
+- ISS-04: тест Monit `67space_AP_Ping` для AP-1…AP-3 (`scripts/opnsense_setup_sprint2.py`, функція `monit()`).
+Снапшоти VirtualBox `stable-v1.1` обох VM; резервна копія `secrets/baseline/config-stable-v1.1.xml` і її SHA-256;
+`evidence/retest17/baseline-v1.1-manifest.txt` — контрольні суми файлів. Логи retest — `evidence/retest17/`.
 
 ## Тестові акаунти (лише для стенда)
 Студенти `student01`/`Stud01-lab`, `student02`/`Stud02-lab`; викладач `teacher01`/`Teach01-lab`;

@@ -1,0 +1,8 @@
+
+Retest заняття 17, 5.7 хв:
+          BASELINE-before-final: PASS  (1/1)  Перевірка базової версії stable-v1.1 (до тестів)
+  FINAL   NT-04-final: PASS  (9/9)  Моніторинг: збій усіх точок доступу і втрата зв'язку з OPNsense (R-05)
+  FINAL   TC-05-final: PASS  (13/13)  Моніторинг мережі (R-05) і журнал підключень (R-14)
+  FINAL   TC-04-final: PASS  (25/25)  Captive Portal: доступ до та після входу (R-04)
+  FINAL   TC-08-final: PASS  (9/9)  Ізоляція гостьового сегмента від внутрішніх ресурсів (R-08)
+          BASELINE-after-final: PASS  (1/1)  Перевірка базової версії stable-v1.1 (після тестів)

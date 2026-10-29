@@ -1,0 +1,284 @@
+[
+  {
+    "tc": "BASELINE-before",
+    "title": "Перевірка базової версії freeze-v1.0 (до тестів)",
+    "status": "PASS",
+    "checks": [
+      {
+        "check": "Вміст конфігурації OPNsense = базова версія freeze-v1.0",
+        "ok": true,
+        "expected": "однакові SHA-256 вмісту"
+      }
+    ]
+  },
+  {
+    "tc": "NT-01",
+    "title": "Ваучер гостя: передача іншому пристрою і закінчення строку дії (R-07)",
+    "status": "PASS",
+    "checks": [
+      {
+        "check": "Гість увійшов за ваучером",
+        "ok": true,
+        "expected": "AUTHORIZED"
+      },
+      {
+        "check": "Один ваучер — не більше однієї активної сесії",
+        "ok": true,
+        "expected": "<= 1 сесія"
+      },
+      {
+        "check": "Інтернет має не більше одного пристрою з цим ваучером",
+        "ok": true,
+        "expected": "<= 1 пристрій"
+      },
+      {
+        "check": "Сесію закрито автоматично після закінчення строку ваучера",
+        "ok": true,
+        "expected": "≈ 120 с (+ цикл перевірки OPNsense)"
+      },
+      {
+        "check": "dev-guest: після закінчення строку — знову сторінка входу",
+        "ok": true,
+        "expected": "302 -> портал"
+      },
+      {
+        "check": "dev-guest2: після закінчення строку — знову сторінка входу",
+        "ok": true,
+        "expected": "302 -> портал"
+      },
+      {
+        "check": "dev-guest: прострочений ваучер не пускає",
+        "ok": true,
+        "expected": "NOT_AUTHORIZED"
+      },
+      {
+        "check": "dev-guest2: прострочений ваучер не пускає",
+        "ok": true,
+        "expected": "NOT_AUTHORIZED"
+      },
+      {
+        "check": "Після спроб входу інтернет гостю закритий",
+        "ok": true,
+        "expected": "302"
+      }
+    ]
+  },
+  {
+    "tc": "NT-02",
+    "title": "Підміна адреси в гостьовому VLAN (R-03, R-08)",
+    "status": "FAIL",
+    "checks": [
+      {
+        "check": "Інтернет із чужою адресою недоступний",
+        "ok": true,
+        "expected": "немає доступу"
+      },
+      {
+        "check": "Внутрішній сервер недоступний",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "Пристрій студента (10.67.10.122) недоступний",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "Шлюз студентського VLAN 10.67.10.1 недоступний",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "Акаунт студента з гостьового VLAN не входить",
+        "ok": true,
+        "expected": "NOT_AUTHORIZED"
+      },
+      {
+        "check": "Без входу — перенаправлення на сторінку входу",
+        "ok": true,
+        "expected": "302 -> портал"
+      },
+      {
+        "check": "HTTPS в інтернет закритий",
+        "ok": true,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "Внутрішній сервер недоступний",
+        "ok": false,
+        "expected": "немає з'єднання"
+      },
+      {
+        "check": "Firewall фіксує блокування трафіку з підмінених адрес",
+        "ok": true,
+        "expected": "є записи block"
+      },
+      {
+        "check": "Після відновлення гість отримав адресу DHCP і входить за ваучером",
+        "ok": true,
+        "expected": "AUTHORIZED"
+      }
+    ]
+  },
+  {
+    "tc": "NT-03",
+    "title": "Некоректне введення й підбір пароля на сторінці входу (R-04)",
+    "status": "FAIL",
+    "checks": [
+      {
+        "check": "Відмова без збою: user=''",
+        "ok": true,
+        "expected": "HTTP 200, NOT_AUTHORIZED"
+      },
+      {
+        "check": "Відмова без збою: user='student01'",
+        "ok": true,
+        "expected": "HTTP 200, NOT_AUTHORIZED"
+      },
+      {
+        "check": "Відмова без збою: user=''",
+        "ok": true,
+        "expected": "HTTP 200, NOT_AUTHORIZED"
+      },
+      {
+        "check": "Відмова без збою: user='aaaaaaaaaaaaaaaaaaaaaaaa'",
+        "ok": false,
+        "expected": "HTTP 200, NOT_AUTHORIZED"
+      },
+      {
+        "check": "Відмова без збою: user=\"' OR '1'='1\"",
+        "ok": true,
+        "expected": "HTTP 200, NOT_AUTHORIZED"
+      },
+      {
+        "check": "Відмова без збою: user=\"student01' -- \"",
+        "ok": true,
+        "expected": "HTTP 200, NOT_AUTHORIZED"
+      },
+      {
+        "check": "Відмова без збою: user='student01\" or \"1\"=\"1'",
+        "ok": true,
+        "expected": "HTTP 200, NOT_AUTHORIZED"
+      },
+      {
+        "check": "Відмова без збою: user='<script>alert(1)</script'",
+        "ok": true,
+        "expected": "HTTP 200, NOT_AUTHORIZED"
+      },
+      {
+        "check": "Відмова без збою: user='../../etc/passwd'",
+        "ok": true,
+        "expected": "HTTP 200, NOT_AUTHORIZED"
+      },
+      {
+        "check": "Відмова без збою: user='STUDENT01'",
+        "ok": true,
+        "expected": "HTTP 200, NOT_AUTHORIZED"
+      },
+      {
+        "check": "Відмова без збою: user='student01'",
+        "ok": true,
+        "expected": "HTTP 200, NOT_AUTHORIZED"
+      },
+      {
+        "check": "Відмова без збою: user='student01 '",
+        "ok": true,
+        "expected": "HTTP 200, NOT_AUTHORIZED"
+      },
+      {
+        "check": "Жодна з 30 хибних спроб не дала доступу",
+        "ok": true,
+        "expected": "30 x NOT_AUTHORIZED"
+      },
+      {
+        "check": "Сторінка входу відкривається",
+        "ok": true,
+        "expected": "200"
+      },
+      {
+        "check": "Інтернет без входу закритий",
+        "ok": true,
+        "expected": "302 -> портал"
+      },
+      {
+        "check": "Правильний вхід після атак працює (немає відмови в обслуговуванні)",
+        "ok": true,
+        "expected": "AUTHORIZED"
+      },
+      {
+        "check": "Після входу є інтернет",
+        "ok": true,
+        "expected": "200/301"
+      },
+      {
+        "check": "Невдалі спроби входу видно в журналі порталу",
+        "ok": false,
+        "expected": ">= 30 записів"
+      }
+    ]
+  },
+  {
+    "tc": "NT-04",
+    "title": "Моніторинг: збій усіх точок доступу і втрата зв'язку з OPNsense (R-05)",
+    "status": "FAIL",
+    "checks": [
+      {
+        "check": "Усі 3 точки показано НЕДОСТУПНА не пізніше 60 с",
+        "ok": true,
+        "expected": "3 x DOWN, <= 60 с"
+      },
+      {
+        "check": "Решта показників панелі працює під час збою",
+        "ok": true,
+        "expected": "1/1/1"
+      },
+      {
+        "check": "Відновлення всіх точок видно не пізніше 60 с",
+        "ok": true,
+        "expected": "<= 60 с"
+      },
+      {
+        "check": "Журнал подій: DOWN і UP для кожної з 3 точок",
+        "ok": true,
+        "expected": "3 x DOWN + 3 x UP"
+      },
+      {
+        "check": "Панель не впала й відповідає під час втрати зв'язку",
+        "ok": true,
+        "expected": "сторінка відкривається"
+      },
+      {
+        "check": "Панель показує помилку джерела даних",
+        "ok": true,
+        "expected": "повідомлення про помилку"
+      },
+      {
+        "check": "Точки доступу не показано «доступна», коли стан невідомий",
+        "ok": false,
+        "expected": "стан «невідомо» замість останнього відомого"
+      },
+      {
+        "check": "Час «Оновлено» не видає старі дані за свіжі",
+        "ok": false,
+        "expected": "час останніх успішних даних"
+      },
+      {
+        "check": "Після відновлення зв'язку панель повертається до нормальної роботи",
+        "ok": true,
+        "expected": "без помилок"
+      }
+    ]
+  },
+  {
+    "tc": "BASELINE-after",
+    "title": "Перевірка базової версії freeze-v1.0 (після тестів)",
+    "status": "PASS",
+    "checks": [
+      {
+        "check": "Вміст конфігурації OPNsense = базова версія freeze-v1.0",
+        "ok": true,
+        "expected": "однакові SHA-256 вмісту"
+      }
+    ]
+  }
+]

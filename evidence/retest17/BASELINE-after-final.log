@@ -1,0 +1,10 @@
+=== BASELINE-after-final (OPNsense): Перевірка базової версії stable-v1.1 (після тестів) ===
+Час запуску: 2026-10-28 19:28:23  |  Середовище: OPNsense 26.7 у VirtualBox + VM alpine-client (VLAN 10/20/30)
+[OPNsense] версія 26.7.7
+[OPNsense] SHA-256 конфігурації: 55cebae38c0bb0d573652619e46ffa294f537f34f7ce4df9490738d7b2c14885
+[stable-v1.1] SHA-256 резервної копії: 55cebae38c0bb0d573652619e46ffa294f537f34f7ce4df9490738d7b2c14885  (однакові)
+[OPNsense] SHA-256 вмісту без міток часу: c04fb4c0d1c6b5157e658498e20615b8805f75ca7269d07335183df7f3bebd09
+[stable-v1.1] SHA-256 вмісту без міток часу: c04fb4c0d1c6b5157e658498e20615b8805f75ca7269d07335183df7f3bebd09
+  -> PASS: Вміст конфігурації OPNsense = базова версія stable-v1.1  (очікується: однакові SHA-256 вмісту)
+
+ПІДСУМОК BASELINE-after-final: PASS (1/1 перевірок)

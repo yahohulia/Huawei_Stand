@@ -13,6 +13,8 @@ GUEST_HARD_MIN = 60        # R-07: сесія гостя не довша за 60
 GUEST_MBIT = 3             # R-07: ліміт на кожен гостьовий пристрій (не нижче порогу R-06 моделі = 2 Мбіт/с)
 MONIT_INTERVAL_S = 10      # R-05: як часто Monit перевіряє точки доступу
 LOG_DAYS = 31              # R-14: скільки днів зберігаються журнали (строк TBD, OQ-6)
+AP_PING_TEST = "67space_AP_Ping"
+AP_PING_CONDITION = "failed ping count 2 with timeout 2 seconds"
 APS = {"AP-1": "192.168.56.31", "AP-2": "192.168.56.32", "AP-3": "192.168.56.33"}
 
 
@@ -64,10 +66,18 @@ def shaper():
 def monit():
     print("Monit: перевірка доступності точок доступу")
     m = opn.api("/api/monit/settings/get")["monit"]
-    ping = next(u for u, t in m["test"].items() if t["name"] == "Ping")
     for u, s in m["service"].items():
         if TAG in s.get("description", ""):
             opn.api(f"/api/monit/settings/delService/{u}", data={})
+    # ISS-04 (заняття 17): стандартний тест Ping (3 спроби x 5 с) затримує цикл Monit на ~15 с на кожну недоступну
+    # точку, тож збій усіх трьох видно лише через 54–64 с. Власний тест: 2 спроби x 2 с
+    for u, t in m["test"].items():
+        if t["name"] == AP_PING_TEST:
+            opn.api(f"/api/monit/settings/delTest/{u}", data={})
+    t = opn.api("/api/monit/settings/addTest", data={"test": {
+        "name": AP_PING_TEST, "type": "NetworkPing", "condition": AP_PING_CONDITION, "action": "alert"}})
+    ok(t, f"тест {AP_PING_TEST}: {AP_PING_CONDITION}")
+    ping = t.get("uuid", "")
     ok(opn.api("/api/monit/settings/set", data={"monit": {"general": {
         "enabled": "1", "interval": str(MONIT_INTERVAL_S), "startdelay": "0"}}}), f"Monit увімкнено, інтервал {MONIT_INTERVAL_S} с")
     for name, ip in APS.items():

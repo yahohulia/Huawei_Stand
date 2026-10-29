@@ -1,0 +1,8 @@
+=== NT-01, повтор кроку 2: один ваучер на двох пристроях (6 спроб), 2026-10-27 21:37:49 ===
+Налаштування зони GUESTS: concurrentlogins = 0 (одночасні входи одного акаунта заборонені)
+спроба 1: ваучер YErUMz, входи ['AUTHORIZED', 'AUTHORIZED'], сесій ваучера в OPNsense 2 (02:67:00:00:30:02, 02:67:00:00:30:01), HTTP dev-guest/dev-guest2: ['301', '301']
+спроба 2: ваучер 9YY5sR, входи ['AUTHORIZED', 'AUTHORIZED'], сесій ваучера в OPNsense 1 (02:67:00:00:30:02), HTTP dev-guest/dev-guest2: ['302', '301']
+спроба 3: ваучер gE8aKu, входи ['AUTHORIZED', 'AUTHORIZED'], сесій ваучера в OPNsense 1 (02:67:00:00:30:02), HTTP dev-guest/dev-guest2: ['302', '301']
+спроба 4: ваучер bsfq3f, входи ['AUTHORIZED', 'AUTHORIZED'], сесій ваучера в OPNsense 1 (02:67:00:00:30:02), HTTP dev-guest/dev-guest2: ['302', '301']
+спроба 5: ваучер fmTCeN, входи ['AUTHORIZED', 'AUTHORIZED'], сесій ваучера в OPNsense 1 (02:67:00:00:30:02), HTTP dev-guest/dev-guest2: ['302', '301']
+спроба 6: ваучер vNkqet, входи ['AUTHORIZED', 'AUTHORIZED'], сесій ваучера в OPNsense 2 (02:67:00:00:30:02, 02:67:00:00:30:01), HTTP dev-guest/dev-guest2: ['301', '301']

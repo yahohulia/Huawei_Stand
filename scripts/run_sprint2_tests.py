@@ -307,6 +307,8 @@ def tc02():
         # 302 — це редирект на портал (доступу немає), тому успіх лише 200 / 301 (1.1.1.1 переадресовує на https)
         bad = [r for r in rows if r[2] not in ("200", "301")]
         active = {r[0] for r in rows if r[2] in ("200", "301")}
+        with open(os.path.join(OUT, "TC-02-requests.txt"), "w", encoding="utf-8") as f:   # для розбору відмов
+            f.write("\n".join(" ".join(r) for r in rows) + "\n")
         L.add(f"Запитів: {len(rows)}, невдалих: {len(bad)}" + (f" (приклади: {bad[:5]})" if bad else ""))
         L.add(f"Пристроїв з успішними запитами: {len(active)} з {total}")
         L.check("Усі пристрої працюють у мережі одночасно", len(active) == total, f"{total}/{total}")

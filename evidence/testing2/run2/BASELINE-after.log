@@ -1,0 +1,10 @@
+=== BASELINE-after (OPNsense): Перевірка базової версії freeze-v1.0 (після тестів) ===
+Час запуску: 2026-10-27 21:35:44  |  Середовище: OPNsense 26.7 у VirtualBox + VM alpine-client (VLAN 10/20/30)
+[OPNsense] версія 26.7.7
+[OPNsense] SHA-256 конфігурації: 09377c568a683b0d62d3d6ec4c7d9691ff11aa230ca24d811ffb9ced1725322d
+[Freeze]   SHA-256 резервної копії: 95d2004200b7b0394959dbd6ab33f7537f075e0cac47814d2e013f815a97e2df  (різні: перевіряється вміст без міток часу збереження)
+[OPNsense] SHA-256 вмісту без міток часу: da3997fab79f2a2b382d619e9aad6c30ba10f2b89f626050bf7feaa9dcb8b493
+[Freeze]   SHA-256 вмісту без міток часу: da3997fab79f2a2b382d619e9aad6c30ba10f2b89f626050bf7feaa9dcb8b493
+  -> PASS: Вміст конфігурації OPNsense = базова версія freeze-v1.0  (очікується: однакові SHA-256 вмісту)
+
+ПІДСУМОК BASELINE-after: PASS (1/1 перевірок)

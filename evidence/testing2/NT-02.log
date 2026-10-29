@@ -1,0 +1,50 @@
+=== NT-02 (OPNsense): Підміна адреси в гостьовому VLAN (R-03, R-08) ===
+Час запуску: 2026-10-27 21:30:17  |  Середовище: OPNsense 26.7 у VirtualBox + VM alpine-client (VLAN 10/20/30)
+[dev-student] вхід у зону 0 як student01 -> clientState=AUTHORIZED
+
+-- Варіант A. Гість вручну ставить адресу зі студентської підмережі 10.67.10.200 (студент авторизований)
+[dev-guest] $ ip addr flush dev v30; ip addr add 10.67.10.200/24 dev v30; ip route add 10.67.30.1 dev v30; ip route add default via 10.67.30.1 dev v30; ip -4 -o addr show v30
+    2: v30    inet 10.67.10.200/24 scope global v30\       valid_lft forever preferred_lft forever   [rc=0]
+[dev-guest] $ curl -s -m 6 -o /dev/null -w "%{http_code}" http://1.1.1.1/
+    000   [rc=28]
+  -> PASS: Інтернет із чужою адресою недоступний  (очікується: немає доступу)
+[dev-guest] $ curl -s -m 6 -o /dev/null -w "%{http_code}" http://192.168.56.20/
+    000   [rc=28]
+  -> PASS: Внутрішній сервер недоступний  (очікується: немає з'єднання)
+[dev-guest] $ curl -s -m 4 -o /dev/null -w "%{http_code}" http://10.67.10.122:8000/
+    000   [rc=7]
+  -> PASS: Пристрій студента (10.67.10.122) недоступний  (очікується: немає з'єднання)
+[dev-guest] $ curl -s -m 4 -o /dev/null -w "%{http_code}" -k https://10.67.10.1/
+    000   [rc=7]
+  -> PASS: Шлюз студентського VLAN 10.67.10.1 недоступний  (очікується: немає з'єднання)
+[dev-guest] вхід у зону 2 як student01 -> clientState=no-json
+  -> PASS: Акаунт студента з гостьового VLAN не входить  (очікується: NOT_AUTHORIZED)
+
+-- Варіант B. Адреса з гостьової підмережі, але не з DHCP (10.67.30.250), вхід не виконано
+[dev-guest] $ ip addr flush dev v30; ip addr add 10.67.30.250/24 dev v30; ip route add default via 10.67.30.1 dev v30; ip -4 -o addr show v30
+    2: v30    inet 10.67.30.250/24 scope global v30\       valid_lft forever preferred_lft forever   [rc=0]
+[dev-guest] $ curl -s -m 6 -o /dev/null -w "%{http_code} %{redirect_url}" http://1.1.1.1/
+    302 http://10.67.30.1:8002/index.html?redirurl=1.1.1.1/   [rc=0]
+  -> PASS: Без входу — перенаправлення на сторінку входу  (очікується: 302 -> портал)
+[dev-guest] $ curl -s -m 5 -o /dev/null -w "%{http_code}" -k https://1.1.1.1/
+    000   [rc=28]
+  -> PASS: HTTPS в інтернет закритий  (очікується: немає з'єднання)
+[dev-guest] $ curl -s -m 6 -w " %{http_code} %{redirect_url}" http://192.168.56.20/
+    302 http://10.67.30.1:8002/index.html?redirurl=192.168.56.20/   [rc=0]
+  -> PASS: Внутрішній сервер недоступний (вміст сервера не отримано)  (очікується: немає з'єднання або перенаправлення на портал)
+
+[firewall log] block від підмінених адрес: 5 записів
+    2026-10-27T19:30:58  vlan0.30  10.67.30.250 -> 1.1.1.1  proto=tcp dport=443
+    2026-10-27T19:30:57  vlan0.30  10.67.30.250 -> 1.1.1.1  proto=tcp dport=443
+    2026-10-27T19:30:56  vlan0.30  10.67.30.250 -> 1.1.1.1  proto=tcp dport=443
+    2026-10-27T19:30:55  vlan0.30  10.67.30.250 -> 1.1.1.1  proto=tcp dport=443
+    2026-10-27T19:30:54  vlan0.30  10.67.30.250 -> 1.1.1.1  proto=tcp dport=443
+  -> PASS: Firewall фіксує блокування трафіку з підмінених адрес  (очікується: є записи block)
+
+-- Відновлення: адреса гостя знову по DHCP
+[dev-guest] $ ip addr flush dev v30; ip route flush dev v30; udhcpc -i v30 -n -q -t 5 -T 2 -s /usr/share/udhcpc/default.script >/dev/null 2>&1; ip -4 -o addr show v30
+    2: v30    inet 10.67.30.190/24 brd 10.67.30.255 scope global v30\       valid_lft forever preferred_lft forever   [rc=0]
+[dev-guest] вхід у зону 2 як TbPXMk -> clientState=AUTHORIZED
+  -> PASS: Після відновлення гість отримав адресу DHCP і входить за ваучером  (очікується: AUTHORIZED)
+
+ПІДСУМОК NT-02: PASS (10/10 перевірок)
